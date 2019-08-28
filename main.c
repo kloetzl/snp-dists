@@ -15,13 +15,35 @@ const char IGNORE_CHAR = '.';
 
 KSEQ_INIT(gzFile, gzread)
 
+static int table[256][256] = {0};
+
+void init_table()
+{
+  // all table cells are zero initially
+  table['A']['C'] = 1;
+  table['A']['G'] = 1;
+  table['A']['T'] = 1;
+  table['C']['A'] = 1;
+  table['C']['G'] = 1;
+  table['C']['T'] = 1;
+  table['G']['A'] = 1;
+  table['G']['C'] = 1;
+  table['G']['T'] = 1;
+  table['T']['A'] = 1;
+  table['T']['C'] = 1;
+  table['T']['G'] = 1;
+
+  table['W']['T'] = table['T']['W'] = 1;
+  // etc.
+}
+
 //------------------------------------------------------------------------
 size_t distance(const char* restrict a, const char* restrict b, size_t L)
 {
   size_t diff=0;
   for (size_t i=0; i < L; i++) {
     if (a[i] != b[i] && a[i] != IGNORE_CHAR && b[i] != IGNORE_CHAR) {
-      diff++;
+      diff += table[(unsigned char)a[i]][(unsigned char)b[i]];
     }
   }
   return diff;
@@ -51,6 +73,8 @@ void show_help(int retcode)
 //------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+  init_table();
+
   // parse command line parameters
   int opt, quiet = 0, csv = 0, corner = 1, allchars = 0, keepcase = 0;
   while ((opt = getopt(argc, argv, "hqcakbv")) != -1) {
